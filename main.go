@@ -1,29 +1,24 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
-	"net/http"
 	"pig_road_server/model"
+	"pig_road_server/service"
 )
 
 func main() {
-	http.HandleFunc("/restaurants", getRestaurants)
-	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
-}
+	ds, err := service.NewDatabaseService()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// restaurantService := service.NewRestaurantRepository(ds.GetDB())
+	// result := restaurantService.CreateRestaurant("파이브가이즈 강남점", "서울특별시 서초구 강남대로 435", 4.0, 37.5012, 127.0257)
+	// log.Println(result)
 
-func getRestaurants(w http.ResponseWriter, r *http.Request) {
-	log.Println("getRestaurants", r.Method, r.URL)
-	restaurants := model.GetKoreanRestaurants()
-	responseBody := make(map[string]interface{})
-	responseBody["restaurants"] = restaurants
-
-	enc := json.NewEncoder(w)
-	enc.SetEscapeHTML(false)
-
-	if err := enc.Encode(responseBody); err != nil {
-		log.Println("Error in encoding restaurants:", err)
-		w.Header().Set("Content-Type", "application/json")
-		enc.Encode(responseBody)
+	menus := model.MockingMenus
+	menuService := service.NewMenuRepository(ds.GetDB())
+	for _, menu := range menus {
+		result := menuService.CreateMenu(&menu)
+		log.Println(result)
 	}
 }
